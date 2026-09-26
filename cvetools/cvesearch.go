@@ -32,6 +32,8 @@ const (
 	contentManifest = "root/buildinfo/content_manifests"
 )
 
+var wolfiRcRegex = regexp.MustCompile(`(.*)(_rc\d*)(.*)`)
+
 /* removed by golint
 var redhat_db []common.VulShort = nil
 var debian_db []common.VulShort = nil
@@ -1053,6 +1055,9 @@ func getAffectedVul(mv map[string][]common.VulShort, features []detectors.Featur
 	avs := make([]vulShortReport, 0)
 
 	for i, ft := range features {
+		if ft.Package == "zlib" {
+			ft.Package = "zlib"
+		}
 		vs, mc := searchAffectedFeature(mv, namespace, ft)
 		for _, v := range vs {
 			vsr := vulShortReport{Vs: v, Ft: ft}
@@ -1237,6 +1242,9 @@ func searchAffectedFeature(mv map[string][]common.VulShort, namespace string, ft
 				}).Info("DEBUG")
 			}
 		}
+		if v.Name == "CVE-2026-27171" {
+			v.Name = "CVE-2026-27171"
+		}
 		for _, fix := range v.Fixin {
 			if namespace == "ubuntu:upstream" && (strings.Contains(fix.Version, ":") || fix.Version == "#MINV#" || fix.Version == "#MAXV#") {
 				continue
@@ -1262,6 +1270,16 @@ func searchAffectedFeature(mv map[string][]common.VulShort, namespace string, ft
 					continue
 				} else if ft.Version.String()[0] != fixVer[0] {
 					continue
+				}
+			}
+
+			if strings.HasPrefix(namespace, "wolfi") {
+				if containsWolfiReleaseCandidate(ftVer.String()) && !containsWolfiReleaseCandidate(fixVer) {
+					rclessVersion := trimWolfiReleaseCandidate(ftVer.String())
+					v, err := utils.NewVersion(rclessVersion)
+					if err == nil {
+						ftVer = v
+					}
 				}
 			}
 
@@ -1291,7 +1309,7 @@ func searchAffectedFeature(mv map[string][]common.VulShort, namespace string, ft
 					afStatus = share.ScanVulStatus_Unaffected
 					continue
 				}
-			} else if ftVer.Compare(ver) >= 0 {
+			} else if ftVer.Compare(ver) >= 0 { // here
 				afStatus = share.ScanVulStatus_Unaffected
 				continue
 			}
@@ -1350,6 +1368,14 @@ func searchAffectedFeature(mv map[string][]common.VulShort, namespace string, ft
 		}
 	}
 	return affectVs, moduleVuls
+}
+
+func containsWolfiReleaseCandidate(version string) bool {
+	return wolfiRcRegex.MatchString(version)
+}
+
+func trimWolfiReleaseCandidate(version string) string {
+	return wolfiRcRegex.ReplaceAllString(version, "$1$3")
 }
 
 func makeFeatureMap(vss []common.VulShort, namespace string) map[string][]common.VulShort {

@@ -33,6 +33,7 @@ func (tm *taskMain) ScanImage(req share.ScanImageRequest, imgPath string) (*shar
 		"Registry": req.Registry, "image": fmt.Sprintf("%s:%s", req.Repository, req.Tag), "base": req.BaseImage,
 	}).Debug()
 
+	// here
 	return cveTools.ScanImage(tm.ctx, &req, imgPath)
 }
 

@@ -32,3 +32,4 @@ _testmain.go
 /sigstore-interface
 data/cvedb.regular
 /task/scannerTask_test1.go
+__debug*

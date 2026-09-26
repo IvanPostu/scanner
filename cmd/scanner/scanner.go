@@ -71,7 +71,7 @@ func setParsingCaps(caps *share.ParsingCaps) {
 	parsingCaps = caps
 }
 
-const taskerPath = "/usr/local/bin/scannerTask"
+const taskerPath = "/home/iv127/Projects/ipostu-neuvector/scanner/task/scannerTask"
 const registerWaitTime = time.Duration(time.Second * 10)
 const dockerSocket = "unix:///var/run/docker.sock"
 const defaultDockerhubReg = "https://registry.hub.docker.com"
@@ -215,7 +215,7 @@ func adjustContainerPod(selfID string, containers []*container.ContainerMeta) st
 
 func main() {
 	log.SetOutput(os.Stdout)
-	log.SetLevel(log.InfoLevel)
+	log.SetLevel(log.DebugLevel)
 	log.SetFormatter(&utils.LogFormatter{Module: "SCN"})
 
 	dbPath := flag.String("d", "./dbgen/", "cve database file directory")
